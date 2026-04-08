@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Rayner Plot — Future of Jobs 2025</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f7f6f2;color:#1a1a2e;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{padding:20px 32px 14px;border-bottom:1px solid #e0dbd4;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;background:#fff}
+.hl h1{font-size:23px;font-weight:700;letter-spacing:-.3px;color:#1a1a2e}
+.hl .sub{font-size:11.5px;color:#555;margin-top:5px;line-height:1.65;max-width:610px}
+.hl .note{margin-top:7px;font-size:10.5px;color:#888;font-style:italic;max-width:610px;line-height:1.5;border-left:2px solid #ddd;padding-left:8px}
+.mem{background:#f0f4ff;border:1px solid #c5d3f5;border-left:3px solid #3355cc;padding:12px 15px;border-radius:6px;max-width:290px;font-size:10.5px;color:#555;line-height:1.6;flex-shrink:0}
+.mem strong{color:#1a1a2e;display:block;margin-bottom:3px;font-size:11.5px}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:240px;flex-shrink:0;padding:12px 11px;border-right:1px solid #e0dbd4;overflow-y:auto;background:#faf9f7}
+.sb-sec{margin-bottom:16px}
+.sidebar h3{font-size:8.5px;text-transform:uppercase;letter-spacing:1.2px;color:#aaa;margin-bottom:7px;font-weight:600}
+.li{display:flex;align-items:flex-start;gap:6px;padding:4px 5px;border-radius:4px;cursor:pointer;font-size:10px;color:#333;margin-bottom:2px;transition:background .12s;border:1px solid transparent;line-height:1.3}
+.li:hover{background:#eeece8;border-color:#ddd}
+.li.active{background:#eef1ff;border-color:#3355cc}
+.ld{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:1px}
+.cat-legend{display:flex;flex-direction:column;gap:5px}
+.cat-row{display:flex;align-items:center;gap:7px;font-size:10.5px;color:#444}
+.cat-sw{width:13px;height:13px;border-radius:3px;flex-shrink:0}
+.search{width:100%;padding:5px 8px;background:#fff;border:1px solid #ddd;border-radius:4px;color:#333;font-size:10.5px;outline:none}
+.search:focus{border-color:#3355cc;box-shadow:0 0 0 2px #3355cc22}
+.search::placeholder{color:#bbb}
+.sz-row{display:flex;align-items:center;gap:7px;font-size:10px;color:#888;margin-bottom:5px}
+.sz-c{border-radius:50%;background:#bbb;flex-shrink:0}
+.chart{flex:1;padding:8px 12px;display:flex;flex-direction:column;align-items:center;overflow:auto}
+#svg{max-width:100%}
+.tip{position:fixed;background:#fff;border:1px solid #ddd;border-radius:7px;padding:10px 13px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:285px;z-index:1000;font-size:10.5px;box-shadow:0 4px 18px rgba(0,0,0,.1)}
+.tip.on{opacity:1}
+.tip .jn{font-weight:700;font-size:12px;color:#1a1a2e;margin-bottom:5px;line-height:1.3}
+.tip .badge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:9.5px;font-weight:500;margin-bottom:6px;line-height:1.5}
+.tip table{width:100%;border-collapse:collapse}
+.tip td{padding:1.5px 0;font-size:9.5px;color:#888}
+.tip td:last-child{text-align:right;color:#222;font-weight:500}
+.tip .sep td{border-top:1px solid #eee;padding-top:3px}
+footer{padding:7px 32px;border-top:1px solid #e0dbd4;font-size:9.5px;color:#aaa;display:flex;justify-content:space-between;background:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div class="hl">
+    <h1>The Rayner Plot — Future of Jobs 2025</h1>
+    <div class="sub">
+      Share of employers expecting each occupation to <strong>grow</strong>, <strong>decline</strong>, or remain <strong>stable</strong> by 2030.
+      <strong>X-axis:</strong> net balance of employer expectations (negative = more declining than growing).
+      <strong>Y-axis:</strong> churn — total share expecting any directional change.
+      Jobs near the base are broadly stable; near the apex, contested. Dot size = projected workforce 2030.
+    </div>
+    <div class="note">
+      Position reflects the share of employers anticipating change — not the estimated average magnitude of workforce growth or decline. A role near net-zero at high churn faces equal growth and decline pressure: structural volatility, not stability.
+    </div>
+  </div>
+  <div class="mem">
+    <strong>✦ In memory of Mark Rayner</strong>
+    Mark conceived this plot. His insight: headline net-growth figures mask hidden turbulence. A role near net-zero with high churn has equal numbers of employers growing and cutting it — not stability. This is the Rayner Plot.
+  </div>
+</header>
+<div class="main">
+  <div class="sidebar">
+    <div class="sb-sec">
+      <h3>Macro Driver Category</h3>
+      <div class="cat-legend" id="cat-legend"></div>
+    </div>
+    <div class="sb-sec">
+      <h3>Filter by Driver</h3>
+      <div id="legend"></div>
+    </div>
+    <div class="sb-sec">
+      <h3>Search &amp; Highlight</h3>
+      <input class="search" type="text" placeholder="Type a job name…" id="search">
+    </div>
+    <div class="sb-sec">
+      <h3>Workforce Size 2030</h3>
+      <div class="sz-row"><div class="sz-c" style="width:5px;height:5px"></div><span>&lt; 1M</span></div>
+      <div class="sz-row"><div class="sz-c" style="width:9px;height:9px"></div><span>1M – 5M</span></div>
+      <div class="sz-row"><div class="sz-c" style="width:14px;height:14px"></div><span>5M – 20M</span></div>
+      <div class="sz-row"><div class="sz-c" style="width:22px;height:22px"></div><span>20M – 80M</span></div>
+      <div class="sz-row"><div class="sz-c" style="width:36px;height:36px"></div><span>&gt; 80M</span></div>
+    </div>
+  </div>
+  <div class="chart">
+    <svg id="svg" viewBox="0 0 960 830" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+<footer>
+  <span>World Economic Forum — Future of Jobs Report 2025 | The Rayner Plot</span>
+  <span>Hover for details · Click driver to filter · Search to highlight</span>
+</footer>
+<script>
+const DATA=[{"option": "AI and Machine Learning Specialists", "net_growth": 96.648, "churn": 96.648, "pct_grow": 96.648, "pct_decline": 0.0, "pct_stable": 3.352, "grow": 519, "decline": 0, "stable": 18, "total": 537, "size_2030": 405684, "dot_px": 9.9719, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Unknown"}, {"option": "Accountants and Auditors", "net_growth": -33.9921, "churn": 62.4506, "pct_grow": 14.2292, "pct_decline": 48.2213, "pct_stable": 37.5494, "grow": 36, "decline": 122, "stable": 95, "total": 253, "size_2030": 10348992, "dot_px": 21.58, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Accounting,  Bookkeeping and Payroll Clerks", "net_growth": -68.2482, "churn": 82.8467, "pct_grow": 7.2993, "pct_decline": 75.5474, "pct_stable": 17.1533, "grow": 20, "decline": 207, "stable": 47, "total": 274, "size_2030": 7708931, "dot_px": 19.9362, "driver": "Broadening digital access", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Broadening digital access"}, {"option": "Administrative Assistants and Executive Secretaries", "net_growth": -78.2857, "churn": 92.0, "pct_grow": 6.8571, "pct_decline": 85.1429, "pct_stable": 8.0, "grow": 24, "decline": 298, "stable": 28, "total": 350, "size_2030": 24728689, "dot_px": 27.5028, "driver": "Broadening digital access", "grow_driver": "Growing working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Advertising and Public Relations Professionals", "net_growth": 35.4839, "churn": 67.7419, "pct_grow": 51.6129, "pct_decline": 16.129, "pct_stable": 32.2581, "grow": 16, "decline": 5, "stable": 10, "total": 31, "size_2030": 841486, "dot_px": 11.6162, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Arbitrators, Mediators, and Conciliators", "net_growth": 42.8571, "churn": 71.4286, "pct_grow": 57.1429, "pct_decline": 14.2857, "pct_stable": 28.5714, "grow": 12, "decline": 3, "stable": 6, "total": 21, "size_2030": 108088, "dot_px": 7.8428, "driver": "Increased restrictions to global trade and investment", "grow_driver": "Increased restrictions to global trade and investment", "decline_driver": "Broadening digital access"}, {"option": "Architects and Surveyors", "net_growth": 36.8421, "churn": 73.6842, "pct_grow": 55.2632, "pct_decline": 18.4211, "pct_stable": 26.3158, "grow": 21, "decline": 7, "stable": 10, "total": 38, "size_2030": 3058092, "dot_px": 15.7095, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Slower economic growth"}, {"option": "Assembly and Factory Workers", "net_growth": -2.0576, "churn": 81.893, "pct_grow": 39.9177, "pct_decline": 41.9753, "pct_stable": 18.107, "grow": 97, "decline": 102, "stable": 44, "total": 243, "size_2030": 13761484, "dot_px": 23.3319, "driver": "Robots and autonomous systems", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Autonomous and Electric Vehicle Specialists", "net_growth": 90.0, "churn": 90.0, "pct_grow": 90.0, "pct_decline": 0.0, "pct_stable": 10.0, "grow": 54, "decline": 0, "stable": 6, "total": 60, "size_2030": 526520, "dot_px": 10.5142, "driver": "Robots and autonomous systems", "grow_driver": "Robots and autonomous systems", "decline_driver": "Unknown"}, {"option": "Bank Tellers and Related Clerks", "net_growth": -78.0, "churn": 94.0, "pct_grow": 8.0, "pct_decline": 86.0, "pct_stable": 6.0, "grow": 4, "decline": 43, "stable": 3, "total": 50, "size_2030": 1250821, "dot_px": 12.692, "driver": "Broadening digital access", "grow_driver": "Unknown", "decline_driver": "Broadening digital access"}, {"option": "Big Data Specialists", "net_growth": 89.6552, "churn": 93.1034, "pct_grow": 91.3793, "pct_decline": 1.7241, "pct_stable": 6.8966, "grow": 159, "decline": 3, "stable": 12, "total": 174, "size_2030": 473558, "dot_px": 10.288, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Blockchain Developers", "net_growth": 84.2105, "churn": 84.2105, "pct_grow": 84.2105, "pct_decline": 0.0, "pct_stable": 15.7895, "grow": 32, "decline": 0, "stable": 6, "total": 38, "size_2030": 78128, "dot_px": 7.4487, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Unknown"}, {"option": "Building Caretakers, Cleaners and Housekeepers", "net_growth": -17.2414, "churn": 65.5172, "pct_grow": 24.1379, "pct_decline": 41.3793, "pct_stable": 34.4828, "grow": 7, "decline": 12, "stable": 10, "total": 29, "size_2030": 73525361, "dot_px": 37.796, "driver": "Ageing and declining working-age populations", "grow_driver": "Broadening digital access", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Building Framers, Finishers, and Related Trades Workers", "net_growth": 24.0, "churn": 64.0, "pct_grow": 44.0, "pct_decline": 20.0, "pct_stable": 36.0, "grow": 11, "decline": 5, "stable": 9, "total": 25, "size_2030": 71379131, "dot_px": 37.4639, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Increased efforts and investments to reduce carbon emissions"}, {"option": "Business Development Professionals", "net_growth": 60.7004, "churn": 64.5914, "pct_grow": 62.6459, "pct_decline": 1.9455, "pct_stable": 35.4086, "grow": 161, "decline": 5, "stable": 91, "total": 257, "size_2030": 3517212, "dot_px": 16.2684, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Increased government subsidies and industrial policy"}, {"option": "Business Intelligence Analysts", "net_growth": 66.2551, "churn": 80.2469, "pct_grow": 73.251, "pct_decline": 6.9959, "pct_stable": 19.7531, "grow": 178, "decline": 17, "stable": 48, "total": 243, "size_2030": 87409, "dot_px": 7.5802, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Business Services and Administration Managers", "net_growth": -24.0741, "churn": 69.7531, "pct_grow": 22.8395, "pct_decline": 46.9136, "pct_stable": 30.2469, "grow": 37, "decline": 76, "stable": 49, "total": 162, "size_2030": 4321720, "dot_px": 17.1403, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Car, Van and Motorcycle Drivers", "net_growth": 3.8462, "churn": 65.3846, "pct_grow": 34.6154, "pct_decline": 30.7692, "pct_stable": 34.6154, "grow": 18, "decline": 16, "stable": 18, "total": 52, "size_2030": 20079708, "dot_px": 25.9267, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Cashiers and Ticket Clerks", "net_growth": -73.0769, "churn": 96.1538, "pct_grow": 11.5385, "pct_decline": 84.6154, "pct_stable": 3.8462, "grow": 6, "decline": 44, "stable": 2, "total": 52, "size_2030": 54291443, "dot_px": 34.5467, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Chefs and Cooks", "net_growth": 51.1628, "churn": 69.7674, "pct_grow": 60.4651, "pct_decline": 9.3023, "pct_stable": 30.2326, "grow": 26, "decline": 4, "stable": 13, "total": 43, "size_2030": 1481053, "dot_px": 13.1955, "driver": "Growing working-age populations", "grow_driver": "Growing working-age populations", "decline_driver": "Quantum and encryption"}, {"option": "Chemical Engineers", "net_growth": 19.0476, "churn": 66.6667, "pct_grow": 42.8571, "pct_decline": 23.8095, "pct_stable": 33.3333, "grow": 9, "decline": 5, "stable": 7, "total": 21, "size_2030": 297557, "dot_px": 9.3857, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Chemical Processing Plant Operators", "net_growth": 45.098, "churn": 84.3137, "pct_grow": 64.7059, "pct_decline": 19.6078, "pct_stable": 15.6863, "grow": 33, "decline": 10, "stable": 8, "total": 51, "size_2030": 3057899, "dot_px": 15.7092, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Robots and autonomous systems"}, {"option": "Chemists and Chemical Laboratory Scientists", "net_growth": 52.381, "churn": 71.4286, "pct_grow": 61.9048, "pct_decline": 9.5238, "pct_stable": 28.5714, "grow": 13, "decline": 2, "stable": 6, "total": 21, "size_2030": 659829, "dot_px": 11.0231, "driver": "Biotechnology and gene technologies", "grow_driver": "Biotechnology and gene technologies", "decline_driver": "Increased efforts and investments to reduce carbon emissions"}, {"option": "Civil Engineers", "net_growth": 47.8261, "churn": 62.3188, "pct_grow": 55.0725, "pct_decline": 7.2464, "pct_stable": 37.6812, "grow": 38, "decline": 5, "stable": 26, "total": 69, "size_2030": 5230680, "dot_px": 18.0036, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Slower economic growth"}, {"option": "Claims Adjusters, Examiners, and Investigators", "net_growth": -31.8182, "churn": 86.3636, "pct_grow": 27.2727, "pct_decline": 59.0909, "pct_stable": 13.6364, "grow": 6, "decline": 13, "stable": 3, "total": 22, "size_2030": 1505028, "dot_px": 13.2449, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Client Information and Customer Service Workers", "net_growth": -39.8438, "churn": 83.5938, "pct_grow": 21.875, "pct_decline": 61.7188, "pct_stable": 16.4062, "grow": 28, "decline": 79, "stable": 21, "total": 128, "size_2030": 14793154, "dot_px": 23.8034, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Compliance Officers", "net_growth": 40.1869, "churn": 53.271, "pct_grow": 46.729, "pct_decline": 6.5421, "pct_stable": 46.729, "grow": 50, "decline": 7, "stable": 50, "total": 107, "size_2030": 1233370, "dot_px": 12.6514, "driver": "Increased restrictions to global trade and investment", "grow_driver": "Increased restrictions to global trade and investment", "decline_driver": "Broadening digital access"}, {"option": "Concierges and Hotel Desk Clerks", "net_growth": 4.7619, "churn": 80.9524, "pct_grow": 42.8571, "pct_decline": 38.0952, "pct_stable": 19.0476, "grow": 9, "decline": 8, "stable": 4, "total": 21, "size_2030": 200669, "dot_px": 8.723, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Slower economic growth"}, {"option": "Construction Laborers", "net_growth": 12.9032, "churn": 77.4194, "pct_grow": 45.1613, "pct_decline": 32.2581, "pct_stable": 22.5806, "grow": 28, "decline": 20, "stable": 14, "total": 62, "size_2030": 16116014, "dot_px": 24.377, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Credit and Loans Officers", "net_growth": -39.2157, "churn": 70.5882, "pct_grow": 15.6863, "pct_decline": 54.902, "pct_stable": 29.4118, "grow": 8, "decline": 28, "stable": 15, "total": 51, "size_2030": 1698399, "dot_px": 13.625, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Data Analysts and Scientists", "net_growth": 86.0215, "churn": 87.4552, "pct_grow": 86.7384, "pct_decline": 0.7168, "pct_stable": 12.5448, "grow": 242, "decline": 2, "stable": 35, "total": 279, "size_2030": 314903, "dot_px": 9.4884, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Data Engineers", "net_growth": 79.562, "churn": 83.9416, "pct_grow": 81.7518, "pct_decline": 2.1898, "pct_stable": 16.0584, "grow": 112, "decline": 3, "stable": 22, "total": 137, "size_2030": 243795, "dot_px": 9.0396, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Broadening digital access"}, {"option": "Data Entry Clerks", "net_growth": -84.3882, "churn": 97.0464, "pct_grow": 6.3291, "pct_decline": 90.7173, "pct_stable": 2.9536, "grow": 15, "decline": 215, "stable": 7, "total": 237, "size_2030": 1464139, "dot_px": 13.1604, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Data Warehousing Specialists", "net_growth": 52.9412, "churn": 82.3529, "pct_grow": 67.6471, "pct_decline": 14.7059, "pct_stable": 17.6471, "grow": 23, "decline": 5, "stable": 6, "total": 34, "size_2030": 315473, "dot_px": 9.4917, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Database Architects", "net_growth": 75.0, "churn": 75.0, "pct_grow": 75.0, "pct_decline": 0.0, "pct_stable": 25.0, "grow": 30, "decline": 0, "stable": 10, "total": 40, "size_2030": 211064, "dot_px": 8.8031, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Unknown"}, {"option": "Database and Network Professionals", "net_growth": 60.3448, "churn": 77.5862, "pct_grow": 68.9655, "pct_decline": 8.6207, "pct_stable": 22.4138, "grow": 40, "decline": 5, "stable": 13, "total": 58, "size_2030": 3437966, "dot_px": 16.1755, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Devops Engineer", "net_growth": 51.2821, "churn": 76.9231, "pct_grow": 64.1026, "pct_decline": 12.8205, "pct_stable": 23.0769, "grow": 25, "decline": 5, "stable": 9, "total": 39, "size_2030": 247986, "dot_px": 9.0683, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Broadening digital access"}, {"option": "Digital Marketing and Strategy Specialists", "net_growth": 72.8477, "churn": 83.4437, "pct_grow": 78.1457, "pct_decline": 5.298, "pct_stable": 16.5563, "grow": 118, "decline": 8, "stable": 25, "total": 151, "size_2030": 4254600, "dot_px": 17.0719, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Digital Transformation Specialists", "net_growth": 84.6154, "churn": 87.9121, "pct_grow": 86.2637, "pct_decline": 1.6484, "pct_stable": 12.0879, "grow": 157, "decline": 3, "stable": 22, "total": 182, "size_2030": 77220, "dot_px": 7.4353, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Door-To-Door Sales Workers, News and Street Vendors, and Related Workers", "net_growth": -45.4545, "churn": 93.9394, "pct_grow": 24.2424, "pct_decline": 69.697, "pct_stable": 6.0606, "grow": 8, "decline": 23, "stable": 2, "total": 33, "size_2030": 1058260, "dot_px": 12.2209, "driver": "Broadening digital access", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Drafters, Engineering Technicians, and Mapping Technicians", "net_growth": 15.625, "churn": 90.625, "pct_grow": 53.125, "pct_decline": 37.5, "pct_stable": 9.375, "grow": 17, "decline": 12, "stable": 3, "total": 32, "size_2030": 541604, "dot_px": 10.5758, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "E-commerce Specialists", "net_growth": 67.6056, "churn": 78.8732, "pct_grow": 73.2394, "pct_decline": 5.6338, "pct_stable": 21.1268, "grow": 52, "decline": 4, "stable": 15, "total": 71, "size_2030": 600917, "dot_px": 10.8076, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Economists", "net_growth": 12.5, "churn": 70.8333, "pct_grow": 41.6667, "pct_decline": 29.1667, "pct_stable": 29.1667, "grow": 10, "decline": 7, "stable": 7, "total": 24, "size_2030": 132410, "dot_px": 8.1118, "driver": "Slower economic growth", "grow_driver": "Slower economic growth", "decline_driver": "Robots and autonomous systems"}, {"option": "Electrical Equipment Installers and Repairers", "net_growth": 31.8182, "churn": 72.7273, "pct_grow": 52.2727, "pct_decline": 20.4545, "pct_stable": 27.2727, "grow": 23, "decline": 9, "stable": 12, "total": 44, "size_2030": 11225216, "dot_px": 22.0628, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Broadening digital access"}, {"option": "Electrotechnology Engineers", "net_growth": 69.3333, "churn": 74.6667, "pct_grow": 72.0, "pct_decline": 2.6667, "pct_stable": 25.3333, "grow": 54, "decline": 2, "stable": 19, "total": 75, "size_2030": 515047, "dot_px": 10.4665, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Slower economic growth"}, {"option": "Energy Engineers", "net_growth": 69.0141, "churn": 71.831, "pct_grow": 70.4225, "pct_decline": 1.4085, "pct_stable": 28.169, "grow": 50, "decline": 1, "stable": 20, "total": 71, "size_2030": 338420, "dot_px": 9.6218, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Unknown"}, {"option": "Environmental Engineers", "net_growth": 84.4444, "churn": 84.4444, "pct_grow": 84.4444, "pct_decline": 0.0, "pct_stable": 15.5556, "grow": 38, "decline": 0, "stable": 7, "total": 45, "size_2030": 789153, "dot_px": 11.4549, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Unknown"}, {"option": "Environmental Protection Professionals", "net_growth": 91.6667, "churn": 91.6667, "pct_grow": 91.6667, "pct_decline": 0.0, "pct_stable": 8.3333, "grow": 55, "decline": 0, "stable": 5, "total": 60, "size_2030": 727429, "dot_px": 11.2552, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Unknown"}, {"option": "Farmworkers, Labourers, and Other Agricultural Workers", "net_growth": 26.087, "churn": 82.6087, "pct_grow": 54.3478, "pct_decline": 28.2609, "pct_stable": 17.3913, "grow": 25, "decline": 13, "stable": 8, "total": 46, "size_2030": 238094680, "dot_px": 54.0, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Increased efforts and investments to adapt to climate change"}, {"option": "FinTech Engineers", "net_growth": 86.9565, "churn": 86.9565, "pct_grow": 86.9565, "pct_decline": 0.0, "pct_stable": 13.0435, "grow": 20, "decline": 0, "stable": 3, "total": 23, "size_2030": 220499, "dot_px": 8.8737, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Unknown"}, {"option": "Financial Analysts", "net_growth": 6.0811, "churn": 53.3784, "pct_grow": 29.7297, "pct_decline": 23.6486, "pct_stable": 46.6216, "grow": 44, "decline": 35, "stable": 69, "total": 148, "size_2030": 2622438, "dot_px": 15.1247, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Financial and Investment Advisers", "net_growth": 36.4706, "churn": 67.0588, "pct_grow": 51.7647, "pct_decline": 15.2941, "pct_stable": 32.9412, "grow": 44, "decline": 13, "stable": 28, "total": 85, "size_2030": 2358357, "dot_px": 14.738, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Food Processing and Related Trades Workers", "net_growth": 42.8571, "churn": 75.0, "pct_grow": 58.9286, "pct_decline": 16.0714, "pct_stable": 25.0, "grow": 33, "decline": 9, "stable": 14, "total": 56, "size_2030": 42137759, "dot_px": 32.0723, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Food Scientists and Technologists", "net_growth": 83.3333, "churn": 91.6667, "pct_grow": 87.5, "pct_decline": 4.1667, "pct_stable": 8.3333, "grow": 21, "decline": 1, "stable": 2, "total": 24, "size_2030": 121837, "dot_px": 7.9993, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Slower economic growth"}, {"option": "Food and Beverage Serving Workers", "net_growth": 36.3636, "churn": 77.2727, "pct_grow": 56.8182, "pct_decline": 20.4545, "pct_stable": 22.7273, "grow": 25, "decline": 9, "stable": 10, "total": 44, "size_2030": 48535538, "dot_px": 33.4266, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Robots and autonomous systems"}, {"option": "Full Stack Engineers", "net_growth": 67.1642, "churn": 73.1343, "pct_grow": 70.1493, "pct_decline": 2.9851, "pct_stable": 26.8657, "grow": 47, "decline": 2, "stable": 18, "total": 67, "size_2030": 342603, "dot_px": 9.6448, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Growing working-age populations"}, {"option": "Garment and Related Trades Workers", "net_growth": 22.2222, "churn": 66.6667, "pct_grow": 44.4444, "pct_decline": 22.2222, "pct_stable": 33.3333, "grow": 12, "decline": 6, "stable": 9, "total": 27, "size_2030": 970391, "dot_px": 11.9867, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Increased geopolitical division and conflicts"}, {"option": "General and Operations Managers", "net_growth": 9.5588, "churn": 43.3824, "pct_grow": 26.4706, "pct_decline": 16.9118, "pct_stable": 56.6176, "grow": 72, "decline": 46, "stable": 154, "total": 272, "size_2030": 66525160, "dot_px": 36.6875, "driver": "Increased focus on labour and social issues", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Broadening digital access"}, {"option": "Graphic Designers", "net_growth": -32.2581, "churn": 83.871, "pct_grow": 25.8065, "pct_decline": 58.0645, "pct_stable": 16.129, "grow": 8, "decline": 18, "stable": 5, "total": 31, "size_2030": 2637814, "dot_px": 15.1464, "driver": "Broadening digital access", "grow_driver": "Growing working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Health and Education Services Managers", "net_growth": 57.1429, "churn": 76.1905, "pct_grow": 66.6667, "pct_decline": 9.5238, "pct_stable": 23.8095, "grow": 14, "decline": 2, "stable": 5, "total": 21, "size_2030": 4667028, "dot_px": 17.4814, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Increased focus on labour and social issues"}, {"option": "Heavy Truck and Bus Drivers", "net_growth": 30.9091, "churn": 63.6364, "pct_grow": 47.2727, "pct_decline": 16.3636, "pct_stable": 36.3636, "grow": 26, "decline": 9, "stable": 20, "total": 55, "size_2030": 44492733, "dot_px": 32.5858, "driver": "Increased focus on labour and social issues", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Hotel and Restaurant Managers", "net_growth": 45.9459, "churn": 62.1622, "pct_grow": 54.0541, "pct_decline": 8.1081, "pct_stable": 37.8378, "grow": 20, "decline": 3, "stable": 14, "total": 37, "size_2030": 1374204, "dot_px": 12.9689, "driver": "Increased focus on labour and social issues", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Rising cost of living, higher prices or inflation"}, {"option": "Human Resources Specialists", "net_growth": 10.8911, "churn": 41.5842, "pct_grow": 26.2376, "pct_decline": 15.3465, "pct_stable": 58.4158, "grow": 53, "decline": 31, "stable": 118, "total": 202, "size_2030": 3178181, "dot_px": 15.8608, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Broadening digital access"}, {"option": "ICT Operations and User Support Technicians", "net_growth": 41.5094, "churn": 60.3774, "pct_grow": 50.9434, "pct_decline": 9.434, "pct_stable": 39.6226, "grow": 27, "decline": 5, "stable": 21, "total": 53, "size_2030": 5045179, "dot_px": 17.8361, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Industrial and Production Engineers", "net_growth": 60.396, "churn": 72.2772, "pct_grow": 66.3366, "pct_decline": 5.9406, "pct_stable": 27.7228, "grow": 67, "decline": 6, "stable": 28, "total": 101, "size_2030": 5404043, "dot_px": 18.1566, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Information Security Analysts", "net_growth": 78.0488, "churn": 79.6748, "pct_grow": 78.8618, "pct_decline": 0.813, "pct_stable": 20.3252, "grow": 97, "decline": 1, "stable": 25, "total": 123, "size_2030": 1725753, "dot_px": 13.6764, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Unknown"}, {"option": "Insurance Underwriters, Valuers, and Loss Assessors", "net_growth": -19.0476, "churn": 76.1905, "pct_grow": 28.5714, "pct_decline": 47.619, "pct_stable": 23.8095, "grow": 6, "decline": 10, "stable": 5, "total": 21, "size_2030": 562996, "dot_px": 10.6612, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Increased restrictions to global trade and investment", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Internet of Things Specialists", "net_growth": 89.2857, "churn": 96.4286, "pct_grow": 92.8571, "pct_decline": 3.5714, "pct_stable": 3.5714, "grow": 26, "decline": 1, "stable": 1, "total": 28, "size_2030": 877759, "dot_px": 11.7241, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Unknown"}, {"option": "Lawyers", "net_growth": 9.1837, "churn": 41.8367, "pct_grow": 25.5102, "pct_decline": 16.3265, "pct_stable": 58.1633, "grow": 50, "decline": 32, "stable": 114, "total": 196, "size_2030": 10313993, "dot_px": 21.5602, "driver": "Increased restrictions to global trade and investment", "grow_driver": "Increased restrictions to global trade and investment", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Legal Secretaries", "net_growth": -30.7692, "churn": 71.7949, "pct_grow": 20.5128, "pct_decline": 51.2821, "pct_stable": 28.2051, "grow": 8, "decline": 20, "stable": 11, "total": 39, "size_2030": 147108, "dot_px": 8.2586, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Legislators and Officials", "net_growth": -33.3333, "churn": 61.9048, "pct_grow": 14.2857, "pct_decline": 47.619, "pct_stable": 38.0952, "grow": 3, "decline": 10, "stable": 8, "total": 21, "size_2030": 492846, "dot_px": 10.3722, "driver": "Broadening digital access", "grow_driver": "Unknown", "decline_driver": "Broadening digital access"}, {"option": "Light Truck or Delivery Services Drivers", "net_growth": 33.3333, "churn": 66.6667, "pct_grow": 50.0, "pct_decline": 16.6667, "pct_stable": 33.3333, "grow": 18, "decline": 6, "stable": 12, "total": 36, "size_2030": 31200291, "dot_px": 29.3964, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Management and Organisation Analysts", "net_growth": 33.3333, "churn": 75.7576, "pct_grow": 54.5455, "pct_decline": 21.2121, "pct_stable": 24.2424, "grow": 36, "decline": 14, "stable": 16, "total": 66, "size_2030": 3804054, "dot_px": 16.5932, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Managing Directors and Chief Executives", "net_growth": 10.7143, "churn": 23.2143, "pct_grow": 16.9643, "pct_decline": 6.25, "pct_stable": 76.7857, "grow": 38, "decline": 14, "stable": 172, "total": 224, "size_2030": 3749590, "dot_px": 16.5328, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Manufacturing, Mining, Construction, and Distribution Managers", "net_growth": 38.7097, "churn": 58.0645, "pct_grow": 48.3871, "pct_decline": 9.6774, "pct_stable": 41.9355, "grow": 15, "decline": 3, "stable": 13, "total": 31, "size_2030": 17613238, "dot_px": 24.9894, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Material-Recording and Stock-Keeping Clerks", "net_growth": -71.831, "churn": 85.9155, "pct_grow": 7.0423, "pct_decline": 78.8732, "pct_stable": 14.0845, "grow": 5, "decline": 56, "stable": 10, "total": 71, "size_2030": 14332681, "dot_px": 23.5958, "driver": "Broadening digital access", "grow_driver": "Growing working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Mechanical Engineers", "net_growth": 41.5385, "churn": 47.6923, "pct_grow": 44.6154, "pct_decline": 3.0769, "pct_stable": 52.3077, "grow": 29, "decline": 2, "stable": 34, "total": 65, "size_2030": 4430498, "dot_px": 17.2496, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Increased focus on labour and social issues"}, {"option": "Mechanics and Machinery Repairers", "net_growth": 11.4286, "churn": 74.2857, "pct_grow": 42.8571, "pct_decline": 31.4286, "pct_stable": 25.7143, "grow": 15, "decline": 11, "stable": 9, "total": 35, "size_2030": 6627750, "dot_px": 19.1534, "driver": "Energy generation, storage and distribution", "grow_driver": "Energy generation, storage and distribution", "decline_driver": "Robots and autonomous systems"}, {"option": "Media and Communication Workers", "net_growth": 37.037, "churn": 74.0741, "pct_grow": 55.5556, "pct_decline": 18.5185, "pct_stable": 25.9259, "grow": 15, "decline": 5, "stable": 7, "total": 27, "size_2030": 5641590, "dot_px": 18.3611, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Mining, Petroleum and Other Extraction Workers", "net_growth": 22.7273, "churn": 68.1818, "pct_grow": 45.4545, "pct_decline": 22.7273, "pct_stable": 31.8182, "grow": 20, "decline": 10, "stable": 14, "total": 44, "size_2030": 5071292, "dot_px": 17.8599, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Energy generation, storage and distribution"}, {"option": "Nursing Professionals", "net_growth": 80.0, "churn": 80.0, "pct_grow": 80.0, "pct_decline": 0.0, "pct_stable": 20.0, "grow": 16, "decline": 0, "stable": 4, "total": 20, "size_2030": 25519290, "dot_px": 27.7507, "driver": "Ageing and declining working-age populations", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "Unknown"}, {"option": "Online Learning Managers", "net_growth": 69.5652, "churn": 95.6522, "pct_grow": 82.6087, "pct_decline": 13.0435, "pct_stable": 4.3478, "grow": 19, "decline": 3, "stable": 1, "total": 23, "size_2030": 551574, "dot_px": 10.6159, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Organisational Development Specialists", "net_growth": 58.6207, "churn": 79.3103, "pct_grow": 68.9655, "pct_decline": 10.3448, "pct_stable": 20.6897, "grow": 80, "decline": 12, "stable": 24, "total": 116, "size_2030": 2896799, "dot_px": 15.4999, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Broadening digital access"}, {"option": "Paralegals and Legal Assistants", "net_growth": -18.6047, "churn": 69.7674, "pct_grow": 25.5814, "pct_decline": 44.186, "pct_stable": 30.2326, "grow": 11, "decline": 19, "stable": 13, "total": 43, "size_2030": 2516067, "dot_px": 14.9722, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Personal Care Aides", "net_growth": 68.1818, "churn": 95.4545, "pct_grow": 81.8182, "pct_decline": 13.6364, "pct_stable": 4.5455, "grow": 18, "decline": 3, "stable": 1, "total": 22, "size_2030": 10312374, "dot_px": 21.5593, "driver": "Increased focus on labour and social issues", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Unknown"}, {"option": "Postal Service Clerks", "net_growth": -97.5, "churn": 97.5, "pct_grow": 0.0, "pct_decline": 97.5, "pct_stable": 2.5, "grow": 0, "decline": 39, "stable": 1, "total": 40, "size_2030": 247474, "dot_px": 9.0648, "driver": "Broadening digital access", "grow_driver": "Unknown", "decline_driver": "Broadening digital access"}, {"option": "Power Production Plant Operators", "net_growth": 43.1818, "churn": 79.5455, "pct_grow": 61.3636, "pct_decline": 18.1818, "pct_stable": 20.4545, "grow": 27, "decline": 8, "stable": 9, "total": 44, "size_2030": 413548, "dot_px": 10.0103, "driver": "Energy generation, storage and distribution", "grow_driver": "Energy generation, storage and distribution", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Primary School and Early Childhood Teachers", "net_growth": 17.2414, "churn": 65.5172, "pct_grow": 41.3793, "pct_decline": 24.1379, "pct_stable": 34.4828, "grow": 12, "decline": 7, "stable": 10, "total": 29, "size_2030": 20862956, "dot_px": 26.2081, "driver": "Growing working-age populations", "grow_driver": "Growing working-age populations", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Printing and Related Trades Workers", "net_growth": -9.5238, "churn": 85.7143, "pct_grow": 38.0952, "pct_decline": 47.619, "pct_stable": 14.2857, "grow": 8, "decline": 10, "stable": 3, "total": 21, "size_2030": 8041933, "dot_px": 20.1624, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Broadening digital access", "decline_driver": "Increased efforts and investments to reduce carbon emissions"}, {"option": "Process Automation Specialists", "net_growth": 84.9462, "churn": 89.2473, "pct_grow": 87.0968, "pct_decline": 2.1505, "pct_stable": 10.7527, "grow": 81, "decline": 2, "stable": 10, "total": 93, "size_2030": 77020, "dot_px": 7.4323, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Growing working-age populations"}, {"option": "Product Managers", "net_growth": 44.2105, "churn": 61.0526, "pct_grow": 52.6316, "pct_decline": 8.4211, "pct_stable": 38.9474, "grow": 50, "decline": 8, "stable": 37, "total": 95, "size_2030": 5483159, "dot_px": 18.2254, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Project Managers", "net_growth": 50.8021, "churn": 64.7059, "pct_grow": 57.754, "pct_decline": 6.9519, "pct_stable": 35.2941, "grow": 108, "decline": 13, "stable": 66, "total": 187, "size_2030": 13232907, "dot_px": 23.0812, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Recruiters and technical recruiters", "net_growth": -22.2222, "churn": 66.6667, "pct_grow": 22.2222, "pct_decline": 44.4444, "pct_stable": 33.3333, "grow": 16, "decline": 32, "stable": 24, "total": 72, "size_2030": 2923392, "dot_px": 15.535, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Robots and autonomous systems", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Regulatory and Government Associate Professionals", "net_growth": 43.1373, "churn": 74.5098, "pct_grow": 58.8235, "pct_decline": 15.6863, "pct_stable": 25.4902, "grow": 30, "decline": 8, "stable": 13, "total": 51, "size_2030": 1250226, "dot_px": 12.6906, "driver": "Increased geopolitical division and conflicts", "grow_driver": "Increased geopolitical division and conflicts", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Relationship Managers", "net_growth": 30.2632, "churn": 72.3684, "pct_grow": 51.3158, "pct_decline": 21.0526, "pct_stable": 27.6316, "grow": 39, "decline": 16, "stable": 21, "total": 76, "size_2030": 3263999, "dot_px": 15.9666, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Renewable Energy Engineers", "net_growth": 95.7143, "churn": 95.7143, "pct_grow": 95.7143, "pct_decline": 0.0, "pct_stable": 4.2857, "grow": 67, "decline": 0, "stable": 3, "total": 70, "size_2030": 54269, "dot_px": 7.0542, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Unknown"}, {"option": "Renewable Energy Technicians", "net_growth": 94.5455, "churn": 94.5455, "pct_grow": 94.5455, "pct_decline": 0.0, "pct_stable": 5.4545, "grow": 52, "decline": 0, "stable": 3, "total": 55, "size_2030": 473783, "dot_px": 10.289, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Unknown"}, {"option": "Risk Management Specialists", "net_growth": 56.4706, "churn": 65.8824, "pct_grow": 61.1765, "pct_decline": 4.7059, "pct_stable": 34.1176, "grow": 52, "decline": 4, "stable": 29, "total": 85, "size_2030": 439644, "dot_px": 10.1341, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Robotics Engineers", "net_growth": 87.3418, "churn": 89.8734, "pct_grow": 88.6076, "pct_decline": 1.2658, "pct_stable": 10.1266, "grow": 70, "decline": 1, "stable": 8, "total": 79, "size_2030": 54044, "dot_px": 7.05, "driver": "Robots and autonomous systems", "grow_driver": "Robots and autonomous systems", "decline_driver": "Broadening digital access"}, {"option": "Sales Representatives, Wholesale and Manufacturing, Technical and Scientific Products", "net_growth": 33.3333, "churn": 68.1818, "pct_grow": 50.7576, "pct_decline": 17.4242, "pct_stable": 31.8182, "grow": 67, "decline": 23, "stable": 42, "total": 132, "size_2030": 2321713, "dot_px": 14.6821, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Sales and Marketing Professionals", "net_growth": 16.2393, "churn": 67.5214, "pct_grow": 41.8803, "pct_decline": 25.641, "pct_stable": 32.4786, "grow": 49, "decline": 30, "stable": 38, "total": 117, "size_2030": 3860863, "dot_px": 16.6556, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Sales and Purchasing Agents and Brokers", "net_growth": 9.375, "churn": 65.625, "pct_grow": 37.5, "pct_decline": 28.125, "pct_stable": 34.375, "grow": 12, "decline": 9, "stable": 11, "total": 32, "size_2030": 7218593, "dot_px": 19.5909, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Secondary Education Teachers", "net_growth": 10.0, "churn": 80.0, "pct_grow": 45.0, "pct_decline": 35.0, "pct_stable": 20.0, "grow": 9, "decline": 7, "stable": 4, "total": 20, "size_2030": 16136420, "dot_px": 24.3856, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Security Guards", "net_growth": 10.7143, "churn": 67.8571, "pct_grow": 39.2857, "pct_decline": 28.5714, "pct_stable": 32.1429, "grow": 11, "decline": 8, "stable": 9, "total": 28, "size_2030": 15582217, "dot_px": 24.1494, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Broadening digital access"}, {"option": "Security Management Specialists", "net_growth": 84.5455, "churn": 84.5455, "pct_grow": 84.5455, "pct_decline": 0.0, "pct_stable": 15.4545, "grow": 93, "decline": 0, "stable": 17, "total": 110, "size_2030": 763128, "dot_px": 11.372, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Unknown"}, {"option": "Sheet and Structural Metal Workers, Moulders and Welders", "net_growth": 26.9231, "churn": 73.0769, "pct_grow": 50.0, "pct_decline": 23.0769, "pct_stable": 26.9231, "grow": 26, "decline": 12, "stable": 14, "total": 52, "size_2030": 1689595, "dot_px": 13.6083, "driver": "Growing working-age populations", "grow_driver": "Growing working-age populations", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Shop Salespersons", "net_growth": 13.1579, "churn": 73.6842, "pct_grow": 43.4211, "pct_decline": 30.2632, "pct_stable": 26.3158, "grow": 33, "decline": 23, "stable": 20, "total": 76, "size_2030": 80167817, "dot_px": 38.7846, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Social Media Strategist", "net_growth": 46.2963, "churn": 83.3333, "pct_grow": 64.8148, "pct_decline": 18.5185, "pct_stable": 16.6667, "grow": 35, "decline": 10, "stable": 9, "total": 54, "size_2030": 854799, "dot_px": 11.6561, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Robots and autonomous systems"}, {"option": "Social Scientists and Related Workers", "net_growth": 25.0, "churn": 82.1429, "pct_grow": 53.5714, "pct_decline": 28.5714, "pct_stable": 17.8571, "grow": 15, "decline": 8, "stable": 5, "total": 28, "size_2030": 4238511, "dot_px": 17.0554, "driver": "Slower economic growth", "grow_driver": "Slower economic growth", "decline_driver": "Growing working-age populations"}, {"option": "Social Work and Counselling Professionals", "net_growth": 34.5455, "churn": 78.1818, "pct_grow": 56.3636, "pct_decline": 21.8182, "pct_stable": 21.8182, "grow": 31, "decline": 12, "stable": 12, "total": 55, "size_2030": 24351298, "dot_px": 27.3827, "driver": "Increased government subsidies and industrial policy", "grow_driver": "Increased government subsidies and industrial policy", "decline_driver": "Broadening digital access"}, {"option": "Software and Applications Developers", "net_growth": 60.4396, "churn": 80.2198, "pct_grow": 70.3297, "pct_decline": 9.8901, "pct_stable": 19.7802, "grow": 64, "decline": 9, "stable": 18, "total": 91, "size_2030": 18459846, "dot_px": 25.3204, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "Solar Energy Installation and System Engineers", "net_growth": 65.3846, "churn": 80.7692, "pct_grow": 73.0769, "pct_decline": 7.6923, "pct_stable": 19.2308, "grow": 19, "decline": 2, "stable": 5, "total": 26, "size_2030": 775118, "dot_px": 11.4104, "driver": "Increased efforts and investments to reduce carbon emissions", "grow_driver": "Increased efforts and investments to reduce carbon emissions", "decline_driver": "Growing working-age populations"}, {"option": "Special Education Teachers", "net_growth": 63.8889, "churn": 80.5556, "pct_grow": 72.2222, "pct_decline": 8.3333, "pct_stable": 19.4444, "grow": 26, "decline": 3, "stable": 7, "total": 36, "size_2030": 379664, "dot_px": 9.8414, "driver": "Increased focus on labour and social issues", "grow_driver": "Increased focus on labour and social issues", "decline_driver": "Broadening digital access"}, {"option": "Statistical, Finance and Insurance Clerks", "net_growth": -38.2979, "churn": 76.5957, "pct_grow": 19.1489, "pct_decline": 57.4468, "pct_stable": 23.4043, "grow": 9, "decline": 27, "stable": 11, "total": 47, "size_2030": 1495133, "dot_px": 13.2246, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Strategic Advisors", "net_growth": 46.4968, "churn": 78.3439, "pct_grow": 62.4204, "pct_decline": 15.9236, "pct_stable": 21.6561, "grow": 98, "decline": 25, "stable": 34, "total": 157, "size_2030": 3912144, "dot_px": 16.7114, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Supply Chain and Logistics Specialists", "net_growth": 57.8378, "churn": 72.973, "pct_grow": 65.4054, "pct_decline": 7.5676, "pct_stable": 27.027, "grow": 121, "decline": 14, "stable": 50, "total": 185, "size_2030": 2080672, "dot_px": 14.2988, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "AI and information processing technologies (big data, VR, AR etc.)", "decline_driver": "Broadening digital access"}, {"option": "Survey Researchers", "net_growth": -22.7273, "churn": 95.4545, "pct_grow": 36.3636, "pct_decline": 59.0909, "pct_stable": 4.5455, "grow": 8, "decline": 13, "stable": 1, "total": 22, "size_2030": 57731, "dot_px": 7.1179, "driver": "Broadening digital access", "grow_driver": "Growing working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Sustainability Specialists", "net_growth": 94.2584, "churn": 94.2584, "pct_grow": 94.2584, "pct_decline": 0.0, "pct_stable": 5.7416, "grow": 197, "decline": 0, "stable": 12, "total": 209, "size_2030": 666420, "dot_px": 11.0464, "driver": "Increased efforts and investments to adapt to climate change", "grow_driver": "Increased efforts and investments to adapt to climate change", "decline_driver": "Unknown"}, {"option": "System Engineers", "net_growth": 67.3913, "churn": 71.7391, "pct_grow": 69.5652, "pct_decline": 2.1739, "pct_stable": 28.2609, "grow": 32, "decline": 1, "stable": 13, "total": 46, "size_2030": 52399, "dot_px": 7.0188, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Increased government subsidies and industrial policy"}, {"option": "Telemarketers", "net_growth": -12.5, "churn": 83.3333, "pct_grow": 35.4167, "pct_decline": 47.9167, "pct_stable": 16.6667, "grow": 17, "decline": 23, "stable": 8, "total": 48, "size_2030": 1508895, "dot_px": 13.2528, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Training and Development Specialists", "net_growth": 31.9444, "churn": 65.2778, "pct_grow": 48.6111, "pct_decline": 16.6667, "pct_stable": 34.7222, "grow": 35, "decline": 12, "stable": 25, "total": 72, "size_2030": 2459658, "dot_px": 14.8896, "driver": "Growing working-age populations", "grow_driver": "Growing working-age populations", "decline_driver": "Broadening digital access"}, {"option": "Transportation Attendants and Conductors", "net_growth": -12.0, "churn": 76.0, "pct_grow": 32.0, "pct_decline": 44.0, "pct_stable": 24.0, "grow": 8, "decline": 11, "stable": 6, "total": 25, "size_2030": 4010707, "dot_px": 16.8172, "driver": "AI and information processing technologies (big data, VR, AR etc.)", "grow_driver": "Ageing and declining working-age populations", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "UI and UX Designers", "net_growth": 61.9048, "churn": 80.9524, "pct_grow": 71.4286, "pct_decline": 9.5238, "pct_stable": 19.0476, "grow": 30, "decline": 4, "stable": 8, "total": 42, "size_2030": 535924, "dot_px": 10.5527, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "AI and information processing technologies (big data, VR, AR etc.)"}, {"option": "University and Higher Education Teachers", "net_growth": 55.0, "churn": 70.0, "pct_grow": 62.5, "pct_decline": 7.5, "pct_stable": 30.0, "grow": 50, "decline": 6, "stable": 24, "total": 80, "size_2030": 13098556, "dot_px": 23.0164, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Ageing and declining working-age populations"}, {"option": "Vocational Education Teachers", "net_growth": 38.1443, "churn": 75.2577, "pct_grow": 56.701, "pct_decline": 18.5567, "pct_stable": 24.7423, "grow": 55, "decline": 18, "stable": 24, "total": 97, "size_2030": 14836711, "dot_px": 23.8228, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Broadening digital access"}, {"option": "Water Transportation Workers, including Ship and Marine Cargo Workers, Controllers, and Technicians", "net_growth": 40.5405, "churn": 72.973, "pct_grow": 56.7568, "pct_decline": 16.2162, "pct_stable": 27.027, "grow": 21, "decline": 6, "stable": 10, "total": 37, "size_2030": 1438652, "dot_px": 13.1069, "driver": "Broadening digital access", "grow_driver": "Broadening digital access", "decline_driver": "Slower economic growth"}];
+
+const DCAT={
+  "AI and information processing technologies (big data, VR, AR etc.)":"tech",
+  "Broadening digital access":"tech",
+  "Robots and autonomous systems":"tech",
+  "Biotechnology and gene technologies":"tech",
+  "Semiconductors and computing technologies":"tech",
+  "Sensing, laser and optical technologies":"tech",
+  "New materials and composites":"tech",
+  "Quantum and encryption":"tech",
+  "Satellites and space technologies":"tech",
+  "Energy generation, storage and distribution":"green",
+  "Increased efforts and investments to reduce carbon emissions":"green",
+  "Increased efforts and investments to adapt to climate change":"green",
+  "Increased focus on labour and social issues":"societal",
+  "Ageing and declining working-age populations":"demographic",
+  "Growing working-age populations":"demographic",
+  "Slower economic growth":"economic",
+  "Rising cost of living, higher prices or inflation":"economic",
+  "Increased restrictions to global trade and investment":"geoeconomic",
+  "Increased government subsidies and industrial policy":"geoeconomic",
+  "Stricter anti-trust and competition regulations":"geoeconomic",
+  "Increased geopolitical division and conflicts":"geoeconomic",
+};
+const CCOL={
+  tech:"#F5A623",green:"#1E7E4A",economic:"#5B9BD5",
+  societal:"#8A9BA8",demographic:"#8E44AD",geoeconomic:"#1A3A6B"
+};
+const CLBL={
+  tech:"Technological change",green:"Green transition",
+  economic:"Economic uncertainty",societal:"Societal issues",
+  demographic:"Demographic shifts",geoeconomic:"Geoeconomic fragmentation"
+};
+const dc=d=>CCOL[DCAT[d]]||"#aaa";
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+// Extra bottom padding so STABLE label, subtitle, and x-axis label don't crowd
+const W=960, H=830;
+const PL=72, PR=44, PT=52, PB=100;   // PB=100 gives room for 3 lines below vertex
+const XMN=-105, XMX=105, YMN=0, YMX=110;
+const PW=W-PL-PR, PH=H-PT-PB;
+const FF="Segoe UI,system-ui,sans-serif";
+
+function p(dx,dy){
+  return{
+    x:+(PL+(dx-XMN)/(XMX-XMN)*PW).toFixed(2),
+    y:+(PT+PH-(dy-YMN)/(YMX-YMN)*PH).toFixed(2)
+  };
+}
+
+const TL=p(-100,100), TR=p(100,100), BOT=p(0,0);
+const ZERO_TOP=p(0,100), ZERO_BOT=p(0,0);
+const svg=document.getElementById('svg');
+
+function e(tag,a={},t){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const[k,v]of Object.entries(a))el.setAttribute(k,v);
+  if(t!==undefined)el.textContent=t;
+  return el;
+}
+
+// ── Defs ──────────────────────────────────────────────────────────────────────
+const defs=e('defs');
+
+// Full triangle clip
+const clipFull=e('clipPath',{id:'tc'});
+clipFull.appendChild(e('polygon',{points:`${TL.x},${TL.y} ${TR.x},${TR.y} ${BOT.x},${BOT.y}`}));
+defs.appendChild(clipFull);
+
+// Left half clip (declining zone)
+const clipL=e('clipPath',{id:'tcL'});
+clipL.appendChild(e('polygon',{points:`${TL.x},${TL.y} ${ZERO_TOP.x},${ZERO_TOP.y} ${ZERO_BOT.x},${ZERO_BOT.y} ${BOT.x},${BOT.y}`}));
+defs.appendChild(clipL);
+
+// Right half clip (growing zone)
+const clipR=e('clipPath',{id:'tcR'});
+clipR.appendChild(e('polygon',{points:`${ZERO_TOP.x},${ZERO_TOP.y} ${TR.x},${TR.y} ${BOT.x},${BOT.y} ${ZERO_BOT.x},${ZERO_BOT.y}`}));
+defs.appendChild(clipR);
+
+// Zone gradients
+const gDec=e('linearGradient',{id:'gDec',x1:'0%',y1:'50%',x2:'100%',y2:'50%'});
+gDec.appendChild(e('stop',{offset:'0%','stop-color':'#e8432a','stop-opacity':'0.13'}));
+gDec.appendChild(e('stop',{offset:'100%','stop-color':'#e8432a','stop-opacity':'0.0'}));
+defs.appendChild(gDec);
+
+const gGro=e('linearGradient',{id:'gGro',x1:'100%',y1:'50%',x2:'0%',y2:'50%'});
+gGro.appendChild(e('stop',{offset:'0%','stop-color':'#1a7a3a','stop-opacity':'0.11'}));
+gGro.appendChild(e('stop',{offset:'100%','stop-color':'#1a7a3a','stop-opacity':'0.0'}));
+defs.appendChild(gGro);
+
+const gStab=e('linearGradient',{id:'gStab',x1:'50%',y1:'100%',x2:'50%',y2:'0%'});
+gStab.appendChild(e('stop',{offset:'0%','stop-color':'#2196a8','stop-opacity':'0.07'}));
+gStab.appendChild(e('stop',{offset:'60%','stop-color':'#2196a8','stop-opacity':'0.0'}));
+defs.appendChild(gStab);
+
+svg.appendChild(defs);
+
+// ── Triangle fills ────────────────────────────────────────────────────────────
+const TP=`${TL.x},${TL.y} ${TR.x},${TR.y} ${BOT.x},${BOT.y}`;
+svg.appendChild(e('polygon',{points:TP,fill:'#fefefe',stroke:'none'}));
+svg.appendChild(e('rect',{x:'0',y:'0',width:String(W),height:String(H),fill:'url(#gDec)','clip-path':'url(#tcL)'}));
+svg.appendChild(e('rect',{x:'0',y:'0',width:String(W),height:String(H),fill:'url(#gGro)','clip-path':'url(#tcR)'}));
+svg.appendChild(e('polygon',{points:TP,fill:'url(#gStab)','clip-path':'url(#tc)'}));
+
+// ── Grid ──────────────────────────────────────────────────────────────────────
+const gg=e('g',{'clip-path':'url(#tc)'});
+for(let c=10;c<=100;c+=10){
+  const L=p(-120,c),R=p(120,c),mj=c%20===0;
+  gg.appendChild(e('line',{x1:L.x,y1:L.y,x2:R.x,y2:R.y,
+    stroke:mj?'#cdc8c0':'#e4e0da','stroke-width':mj?'0.8':'0.5',
+    'stroke-dasharray':mj?'none':'2,5'}));
+}
+for(let n=-80;n<=80;n+=20){
+  if(!n)continue;
+  const t=p(n,Math.abs(n)),b=p(n,0);
+  gg.appendChild(e('line',{x1:t.x,y1:t.y,x2:b.x,y2:b.y,
+    stroke:'#e4e0da','stroke-width':'0.5','stroke-dasharray':'2,5'}));
+}
+svg.appendChild(gg);
+
+// Zero spine
+svg.appendChild(e('line',{
+  x1:ZERO_TOP.x,y1:ZERO_TOP.y,x2:ZERO_BOT.x,y2:ZERO_BOT.y,
+  stroke:'#aaa9a5','stroke-width':'1.2','stroke-dasharray':'5,4'
+}));
+
+// Triangle border
+svg.appendChild(e('polygon',{points:TP,fill:'none',stroke:'#9a9590','stroke-width':'1.5'}));
+
+// ── Ticks ─────────────────────────────────────────────────────────────────────
+// Left (churn) axis ticks
+for(let c=0;c<=100;c+=20){
+  const pt=p(-c,c);
+  svg.appendChild(e('text',{x:pt.x-9,y:pt.y+4,'text-anchor':'end',
+    'font-size':'10',fill:'#999','font-family':FF},c+'%'));
+  svg.appendChild(e('line',{x1:pt.x-3,y1:pt.y,x2:pt.x+2,y2:pt.y,stroke:'#bbb','stroke-width':'1'}));
+}
+// Bottom (net growth) axis ticks — placed at BOT.y + 18
+for(let n=-100;n<=100;n+=20){
+  const pt=p(n,0);
+  svg.appendChild(e('text',{x:pt.x,y:BOT.y+18,'text-anchor':'middle',
+    'font-size':'10',fill:'#999','font-family':FF},(n>0?'+':'')+n+'%'));
+  if(n)svg.appendChild(e('line',{x1:pt.x,y1:BOT.y,x2:pt.x,y2:BOT.y+5,stroke:'#bbb','stroke-width':'1'}));
+}
+
+// ── Fixed bottom labels — carefully spaced to avoid all overlap ───────────────
+// BOT.y = ~698 (with new PB=100, H=830)
+// Row 1: tick %labels    BOT.y + 18  ≈ 716
+// Row 2: x-axis label    BOT.y + 34  ≈ 732  (← Declining ... Growing →)
+// Row 3: STABLE corner   BOT.y + 52  ≈ 750  (large bold, centred)
+// Row 4: "100% stable"   BOT.y + 64  ≈ 762  (small, centred)
+
+{const bx=BOT.x, by=BOT.y;
+  // X-axis direction label — row 2
+  svg.appendChild(e('text',{x:bx,y:by+34,'text-anchor':'middle',
+    'font-size':'11.5',fill:'#555','font-weight':'600','font-family':FF},
+    '← Declining Net Growth (share of employers) Growing →'));
+  // STABLE corner label — row 3
+  svg.appendChild(e('text',{x:bx,y:by+52,'text-anchor':'middle',
+    'font-size':'13',fill:'#2196a8','font-weight':'700','font-family':FF},'STABLE'));
+  // Sub-label — row 4
+  svg.appendChild(e('text',{x:bx,y:by+65,'text-anchor':'middle',
+    'font-size':'9',fill:'#2196a8','font-family':FF},'100% stable'));
+}
+
+// ── Churn axis labels (rotated, on the two slanted edges) ─────────────────────
+{const m=p(-50,50);svg.appendChild(e('text',{x:m.x-34,y:m.y,'text-anchor':'middle',
+  'font-size':'11.5',fill:'#555','font-weight':'600',
+  transform:`rotate(-54,${m.x-34},${m.y})`,'font-family':FF},'Churn (%)'));}
+{const m=p(50,50);svg.appendChild(e('text',{x:m.x+34,y:m.y,'text-anchor':'middle',
+  'font-size':'11.5',fill:'#555','font-weight':'600',
+  transform:`rotate(54,${m.x+34},${m.y})`,'font-family':FF},'Churn (%)'));}
+
+// ── Corner labels — DECLINING and GROWING ─────────────────────────────────────
+{const pt=p(-100,100);
+  svg.appendChild(e('text',{x:pt.x-10,y:pt.y-12,'text-anchor':'end',
+    'font-size':'13',fill:'#c0392b','font-weight':'700','font-family':FF},'DECLINING'));
+  svg.appendChild(e('text',{x:pt.x-10,y:pt.y+3,'text-anchor':'end',
+    'font-size':'9',fill:'#c0392b','font-family':FF},'100% decline, 0% stable'));}
+{const pt=p(100,100);
+  svg.appendChild(e('text',{x:pt.x+10,y:pt.y-12,'text-anchor':'start',
+    'font-size':'13',fill:'#1a7a3a','font-weight':'700','font-family':FF},'GROWING'));
+  svg.appendChild(e('text',{x:pt.x+10,y:pt.y+3,'text-anchor':'start',
+    'font-size':'9',fill:'#1a7a3a','font-family':FF},'100% growth, 0% stable'));}
+
+// ── Mixed outlook label (inside triangle) ─────────────────────────────────────
+{const pt=p(0,80);
+  svg.appendChild(e('text',{x:pt.x,y:pt.y,'text-anchor':'middle',
+    'font-size':'10',fill:'#c0bbb5','font-style':'italic','font-family':FF},'Mixed outlook'));}
+
+// ── DOTS ──────────────────────────────────────────────────────────────────────
+const dotsG=e('g',{id:'dg'});
+const labsG=e('g',{id:'lg'});
+
+// Render largest dots first so smaller ones appear on top
+[...DATA.keys()].sort((a,b)=>DATA[b].dot_px-DATA[a].dot_px).forEach(i=>{
+  const j=DATA[i], pt=p(j.net_growth,j.churn), r=j.dot_px/2;
+  dotsG.appendChild(e('circle',{
+    cx:pt.x, cy:pt.y, r,
+    fill:dc(j.driver), 'fill-opacity':'0.82',
+    stroke:'#fff', 'stroke-width':'0.7',
+    class:'dot', 'data-i':String(i), style:'cursor:pointer'
+  }));
+});
+svg.appendChild(dotsG);
+svg.appendChild(labsG);
+
+// ── Label placement with collision avoidance ──────────────────────────────────
+const FSZ=9, CW=FSZ*0.52, LH=FSZ+3;
+function placeLabels(ids){
+  clearLabels();
+  if(!ids.length)return;
+  const placed=[];
+  [...ids].sort((a,b)=>DATA[b].size_2030-DATA[a].size_2030).forEach(i=>{
+    const j=DATA[i], pt=p(j.net_growth,j.churn), r=j.dot_px/2;
+    const name=j.option.length>35?j.option.slice(0,33)+'…':j.option;
+    const w=name.length*CW+4, h=LH;
+    const cands=[
+      {dx:r+3,dy:3.5},{dx:-(w+r+3),dy:3.5},
+      {dx:-w/2,dy:-(r+6)},{dx:-w/2,dy:r+LH+2},
+      {dx:r+3,dy:-(r+3)},{dx:r+3,dy:r+LH+1},
+      {dx:-(w+r+3),dy:-(r+3)},{dx:-(w+r+3),dy:r+LH+1},
+      {dx:-w/2,dy:-(r+14)},{dx:-w/2,dy:r+LH*2+3},
+    ];
+    for(const c of cands){
+      const lx=pt.x+c.dx, ly=pt.y+c.dy-h+2;
+      if(lx<PL-8||lx+w>W-16||ly<PT-8||ly+h>H-20)continue;
+      let ok=true;
+      for(const q of placed){
+        if(Math.abs(lx-q.x)<(w+q.w)/2+2&&Math.abs(ly-q.y)<h+2){ok=false;break;}
+      }
+      if(ok){
+        labsG.appendChild(e('text',{
+          x:lx, y:pt.y+c.dy,
+          'font-size':String(FSZ), fill:'#1a1a2e', 'font-weight':'500',
+          'font-family':FF, 'pointer-events':'none'
+        },name));
+        placed.push({x:lx,y:ly,w,h});
+        break;
+      }
+    }
+  });
+}
+function clearLabels(){while(labsG.firstChild)labsG.removeChild(labsG.firstChild);}
+
+const allIdx=DATA.map((_,i)=>i);
+const defIdx=[...allIdx].sort((a,b)=>DATA[b].size_2030-DATA[a].size_2030).slice(0,35);
+placeLabels(defIdx);
+
+// ── Category legend ───────────────────────────────────────────────────────────
+const catEl=document.getElementById('cat-legend');
+['tech','green','economic','societal','demographic','geoeconomic'].forEach(cat=>{
+  const row=document.createElement('div');
+  row.className='cat-row';
+  row.innerHTML=`<div class="cat-sw" style="background:${CCOL[cat]}"></div><span>${CLBL[cat]}</span>`;
+  catEl.appendChild(row);
+});
+
+// ── Driver filter legend ──────────────────────────────────────────────────────
+const legEl=document.getElementById('legend');
+const drivers=[...new Set(DATA.map(d=>d.driver))].sort((a,b)=>{
+  const ca=DCAT[a]||'z', cb=DCAT[b]||'z';
+  return ca.localeCompare(cb)||a.localeCompare(b);
+});
+let active=null;
+drivers.forEach(dr=>{
+  const col=dc(dr), cnt=DATA.filter(d=>d.driver===dr).length;
+  const it=document.createElement('div');
+  it.className='li'; it.dataset.dr=dr;
+  it.innerHTML=`<div class="ld" style="background:${col}"></div><div>${dr} <span style="color:#bbb;font-size:9px">(${cnt})</span></div>`;
+  it.addEventListener('click',()=>toggleDr(dr,it));
+  legEl.appendChild(it);
+});
+function toggleDr(dr,it){
+  if(active===dr){
+    active=null;
+    document.querySelectorAll('.li').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.dot').forEach(x=>{x.style.opacity='';});
+    placeLabels(defIdx);
+  }else{
+    active=dr;
+    document.querySelectorAll('.li').forEach(x=>x.classList.remove('active'));
+    it.classList.add('active');
+    const matched=[];
+    document.querySelectorAll('.dot').forEach(x=>{
+      const i=+x.dataset.i;
+      if(DATA[i].driver!==dr)x.style.opacity='0.07';
+      else{x.style.opacity='';matched.push(i);}
+    });
+    placeLabels(matched);
+  }
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input',function(){
+  const q=this.value.toLowerCase().trim();
+  if(!q){
+    document.querySelectorAll('.dot').forEach(x=>{x.style.opacity='';});
+    placeLabels(defIdx);
+    return;
+  }
+  const m=[];
+  document.querySelectorAll('.dot').forEach(x=>{
+    const i=+x.dataset.i;
+    if(DATA[i].option.toLowerCase().includes(q)){x.style.opacity='';m.push(i);}
+    else x.style.opacity='0.07';
+  });
+  placeLabels(m);
+});
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+const tip=document.getElementById('tip');
+const fp=n=>n.toFixed(1)+'%';
+const fn=n=>(n>=0?'+':'')+n.toFixed(1)+'%';
+const fm=n=>n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':String(n);
+
+document.querySelectorAll('.dot').forEach(x=>{
+  x.addEventListener('mousemove',ev=>{
+    const i=+x.dataset.i, j=DATA[i];
+    const col=dc(j.driver);
+    const cat=DCAT[j.driver], cl=cat?CLBL[cat]:j.driver;
+    const drc=j.net_growth>=0?'#1a7a3a':'#c0392b';
+    const drl=j.net_growth>5?'▲ Growing':j.net_growth<-5?'▼ Declining':'↔ Near-neutral';
+    tip.innerHTML=`<div class="jn">${j.option}</div>
+<div class="badge" style="background:${col}18;color:${col};border:1px solid ${col}44">${cl} — ${j.driver}</div>
+<table>
+<tr><td>Employers growing</td><td style="color:#1a7a3a">${fp(j.pct_grow)}</td></tr>
+<tr><td>Employers declining</td><td style="color:#c0392b">${fp(j.pct_decline)}</td></tr>
+<tr><td>Employers stable</td><td style="color:#2196a8">${fp(j.pct_stable)}</td></tr>
+<tr class="sep"><td>Net growth</td><td style="color:${drc}">${fn(j.net_growth)} ${drl}</td></tr>
+<tr><td>Churn</td><td>${fp(j.churn)}</td></tr>
+<tr><td>Workforce 2030</td><td>${fm(j.size_2030)}</td></tr>
+</table>`;
+    tip.style.left=Math.min(ev.clientX+14,innerWidth-298)+'px';
+    tip.style.top=Math.min(ev.clientY-10,innerHeight-260)+'px';
+    tip.classList.add('on');
+  });
+  x.addEventListener('mouseleave',()=>tip.classList.remove('on'));
+});
+</script>
+</body>
+</html>
