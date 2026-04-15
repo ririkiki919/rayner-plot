@@ -269,14 +269,14 @@ for(let n=-100;n<=100;n+=20){
 
 // ── Corner labels — DECLINING and GROWING ─────────────────────────────────────
 {const pt=p(-100,100);
-  svg.appendChild(e('text',{x:pt.x+8,y:pt.y+16,'text-anchor':'start',
+  svg.appendChild(e('text',{x:pt.x,y:pt.y-20,'text-anchor':'start',
     'font-size':'13',fill:'#c0392b','font-weight':'700','font-family':FF},'DECLINING'));
-  svg.appendChild(e('text',{x:pt.x+8,y:pt.y+30,'text-anchor':'start',
+  svg.appendChild(e('text',{x:pt.x,y:pt.y-6,'text-anchor':'start',
     'font-size':'9',fill:'#c0392b','font-family':FF},'100% decline, 0% stable'));}
 {const pt=p(100,100);
-  svg.appendChild(e('text',{x:pt.x-8,y:pt.y+16,'text-anchor':'end',
+  svg.appendChild(e('text',{x:pt.x,y:pt.y-20,'text-anchor':'end',
     'font-size':'13',fill:'#1a7a3a','font-weight':'700','font-family':FF},'GROWING'));
-  svg.appendChild(e('text',{x:pt.x-8,y:pt.y+30,'text-anchor':'end',
+  svg.appendChild(e('text',{x:pt.x,y:pt.y-6,'text-anchor':'end',
     'font-size':'9',fill:'#1a7a3a','font-family':FF},'100% growth, 0% stable'));}
 
 // ── Mixed outlook label (inside triangle) ─────────────────────────────────────
